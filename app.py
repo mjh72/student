@@ -17,8 +17,8 @@ GUEST_PASSWORD = "party2025"
 CSV_FILE = "rsvps.csv"
 PARTY_DATE = datetime.datetime(2025, 6, 12)
 ADMIN_EMAILS = ["mikael.held@gmail.com", "kim.held@gmail.com"]
-SENDER_EMAIL = "your_email@gmail.com"
-SENDER_PASSWORD = "your_app_password"
+SENDER_EMAIL = "mikael.held@gmail.com"
+SENDER_PASSWORD = "gjja owjt xcmh bhpf"
 IMAGE_FILE = "studentmottagning.png"
 
 # -------------------------
