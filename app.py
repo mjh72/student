@@ -2,6 +2,8 @@ import streamlit as st
 import pandas as pd
 import datetime
 import random
+import smtplib
+from email.message import EmailMessage
 
 # 🛠 FIX: Set page config FIRST
 st.set_page_config(page_title="Graduation Party 🎓", page_icon="🎉", layout="centered")
@@ -13,6 +15,26 @@ ADMIN_PASSWORD = "gradparty2025"
 GUEST_PASSWORD = "party2025"
 CSV_FILE = "rsvps.csv"
 PARTY_DATE = datetime.datetime(2025, 6, 12)
+ADMIN_EMAILS = ["mikael.held@gmail.com", "kim.held@gmail.com"]
+SENDER_EMAIL = "mikael.held@gmail.com"  # Change this to your sending email
+SENDER_PASSWORD = "gjja owjt xcmh bhpf"  # Change this to your email app password
+
+# -------------------------
+# EMAIL FUNCTION
+# -------------------------
+def send_email(to_email, subject, body):
+    msg = EmailMessage()
+    msg.set_content(body)
+    msg["Subject"] = subject
+    msg["From"] = SENDER_EMAIL
+    msg["To"] = to_email
+
+    try:
+        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
+            smtp.login(SENDER_EMAIL, SENDER_PASSWORD)
+            smtp.send_message(msg)
+    except Exception as e:
+        st.error(f"Email failed to send: {e}")
 
 # -------------------------
 # INITIAL LOAD
@@ -97,6 +119,7 @@ if view == "Guest RSVP":
                     }
                     rsvps = pd.concat([rsvps, pd.DataFrame([new_rsvp])], ignore_index=True)
                     rsvps.to_csv(CSV_FILE, index=False)
+
                     st.success("🎉 Thank you for your RSVP! We can't wait to celebrate with you! 🎉")
                     st.balloons()
                     st.snow()
@@ -106,6 +129,16 @@ if view == "Guest RSVP":
                     st.markdown("""
                         <div style='text-align: center; font-size:20px; color:#ff9900;'>Your spot at the celebration is confirmed! 🎉</div>
                     """, unsafe_allow_html=True)
+
+                    # Send emails
+                    subject = "Graduation Party RSVP Confirmation 🎓"
+                    body = f"Hi {name},\n\nThank you for your RSVP!\n\nGraduation: {grad}\nDinner: {dinner}\nOpen House: {open_house}\nFood Allergies: {allergies}\n\nWe can't wait to see you! 🎉\n\nLove, Mikael & Kim"
+                    send_email(email, subject, body)
+
+                    for admin_email in ADMIN_EMAILS:
+                        admin_subject = f"New RSVP from {name}! 🎉"
+                        admin_body = f"{name} just RSVP'd!\n\nGraduation: {grad}\nDinner: {dinner}\nOpen House: {open_house}\nFood Allergies: {allergies}\nEmail: {email}"
+                        send_email(admin_email, admin_subject, admin_body)
                 else:
                     st.error("🚫 Please fill out at least your name and email!")
     elif guest_password:
@@ -123,7 +156,11 @@ if view == "Guest RSVP":
         """, unsafe_allow_html=True)
 
         st.image("https://media.giphy.com/media/3oz8xKaR836UJOYeOc/giphy.gif")
-        st.audio("https://www.soundjay.com/human/sounds/applause-01.mp3", format="audio/mp3", start_time=0)
+        st.markdown("""
+            <audio autoplay>
+                <source src="https://www.soundjay.com/human/sounds/applause-01.mp3" type="audio/mpeg">
+            </audio>
+        """, unsafe_allow_html=True)
         st.snow()
 
 # -------------------------
