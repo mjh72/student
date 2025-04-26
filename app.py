@@ -3,6 +3,9 @@ import pandas as pd
 import datetime
 import random
 
+# 🛠 FIX: Set page config FIRST
+st.set_page_config(page_title="Graduation Party 🎓", page_icon="🎉", layout="centered")
+
 # -------------------------
 # CONFIGURATION
 # -------------------------
@@ -45,8 +48,6 @@ st.markdown("""
 # -------------------------
 # APP LAYOUT
 # -------------------------
-st.set_page_config(page_title="Graduation Party 🎓", page_icon="🎉", layout="centered")
-
 st.title("🎓 You're Invited to the Graduation Celebration!")
 
 # Countdown to Party
