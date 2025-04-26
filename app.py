@@ -19,7 +19,7 @@ PARTY_DATE = datetime.datetime(2025, 6, 12)
 ADMIN_EMAILS = ["mikael.held@gmail.com", "kim.held@gmail.com"]
 SENDER_EMAIL = "your_email@gmail.com"  # Change this to your sending email
 SENDER_PASSWORD = "your_app_password"  # Change this to your email app password
-IMAGE_FILE = "/mnt/data/studentmottagning.png"
+IMAGE_FILE = "studentmottagning.png"  # Updated for GitHub deployment
 
 # -------------------------
 # EMAIL FUNCTION
@@ -104,17 +104,7 @@ components.html("""
 st.title("🎓 You're Invited to the Graduation Celebration!")
 
 # Display Invitation Image
-with st.container():
-    components.html(f"""
-    <style>
-    .noRightClick {{
-      pointer-events: none;
-    }}
-    </style>
-    <a href="{IMAGE_FILE}" target="_blank">
-      <img src="{IMAGE_FILE}" width="100%" class="noRightClick">
-    </a>
-    """, height=600)
+st.image(IMAGE_FILE, use_column_width=True)
 
 # Countdown to Party
 today = datetime.datetime.now()
@@ -132,4 +122,7 @@ Join us to celebrate this special milestone with love, laughter, and joy from Le
 
 view = st.sidebar.radio("Select view", ["Guest RSVP", "Admin Panel"])
 
-# (the rest of your app remains the same)
+# -------------------------
+# GUEST RSVP FORM & ADMIN PANEL (TO BE CONTINUED)
+# -------------------------
+# Here you would continue with your RSVP form and Admin Panel code as it was before!
