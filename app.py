@@ -17,9 +17,9 @@ GUEST_PASSWORD = "party2025"
 CSV_FILE = "rsvps.csv"
 PARTY_DATE = datetime.datetime(2025, 6, 12)
 ADMIN_EMAILS = ["mikael.held@gmail.com", "kim.held@gmail.com"]
-SENDER_EMAIL = "your_email@gmail.com"  # Change this to your sending email
-SENDER_PASSWORD = "your_app_password"  # Change this to your email app password
-IMAGE_FILE = "studentmottagning.png"  # Updated for GitHub deployment
+SENDER_EMAIL = "your_email@gmail.com"
+SENDER_PASSWORD = "your_app_password"
+IMAGE_FILE = "studentmottagning.png"
 
 # -------------------------
 # EMAIL FUNCTION
@@ -120,9 +120,57 @@ Join us to celebrate this special milestone with love, laughter, and joy from Le
 </div>
 """, unsafe_allow_html=True)
 
-view = st.sidebar.radio("Select view", ["Guest RSVP", "Admin Panel"])
+# Button to go to registration
+if st.button("📋 Click here to RSVP!"):
+    view = "Guest RSVP"
+else:
+    view = None
+
+# Sidebar for admin
+admin_view = st.sidebar.radio("Admin Options", ["None", "Admin Panel"])
 
 # -------------------------
-# GUEST RSVP FORM & ADMIN PANEL (TO BE CONTINUED)
+# GUEST RSVP FORM & ADMIN PANEL
 # -------------------------
-# Here you would continue with your RSVP form and Admin Panel code as it was before!
+if view == "Guest RSVP":
+    st.header("📋 RSVP Form")
+    guest_password = st.text_input("🔒 Enter invitation password", type="password")
+
+    if guest_password == GUEST_PASSWORD:
+        with st.form("rsvp_form"):
+            name = st.text_input("Full Name")
+            email = st.text_input("Email Address")
+            grad = st.checkbox("I will attend the Graduation Ceremony 📚")
+            dinner = st.checkbox("I will attend the Dinner 🍽️")
+            open_house = st.checkbox("I will attend the Open House 🏡")
+            allergies = st.text_area("Food allergies / Dietary needs", placeholder="None")
+            submitted = st.form_submit_button("Submit RSVP")
+            if submitted:
+                new_rsvp = {
+                    "Timestamp": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    "Name": name,
+                    "Email": email,
+                    "Graduation": grad,
+                    "Dinner": dinner,
+                    "Open House": open_house,
+                    "Food Allergies": allergies
+                }
+                rsvps = pd.concat([rsvps, pd.DataFrame([new_rsvp])], ignore_index=True)
+                rsvps.to_csv(CSV_FILE, index=False)
+                st.success("🎉 Thank you for your RSVP! We can't wait to celebrate with you! 🎉")
+                st.balloons()
+                subject = "Graduation Party RSVP Confirmation 🎓"
+                body = f"Hi {name},\n\nThank you for your RSVP!\nGraduation: {grad}\nDinner: {dinner}\nOpen House: {open_house}\nFood Allergies: {allergies}\n\nLove, Leopoldine & Zacharias"
+                send_email(email, subject, body)
+                for admin_email in ADMIN_EMAILS:
+                    send_email(admin_email, f"New RSVP from {name}! 🎉", body)
+
+elif admin_view == "Admin Panel":
+    st.header("🔒 Admin Panel")
+    password = st.text_input("Enter admin password", type="password")
+    if password == ADMIN_PASSWORD:
+        st.success("Access granted ✅")
+        st.dataframe(rsvps)
+        st.download_button("📥 Download RSVP list", rsvps.to_csv(index=False), file_name="rsvps.csv")
+    elif password:
+        st.error("Incorrect password. Try again.")
