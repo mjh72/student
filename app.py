@@ -104,7 +104,7 @@ components.html("""
 st.title("🎓 You're Invited to the Graduation Celebration!")
 
 # Display Invitation Image
-st.image(IMAGE_FILE, use_column_width=True)
+st.image(IMAGE_FILE, use_container_width=True)
 
 # Countdown to Party
 today = datetime.datetime.now()
@@ -120,11 +120,15 @@ Join us to celebrate this special milestone with love, laughter, and joy from Le
 </div>
 """, unsafe_allow_html=True)
 
-# Button to go to registration
-if st.button("📋 Click here to RSVP!"):
-    view = "Guest RSVP"
-else:
-    view = None
+# Initialize session state for RSVP view
+if "rsvp_mode" not in st.session_state:
+    st.session_state.rsvp_mode = False
+
+if not st.session_state.rsvp_mode:
+    if st.button("📋 Click here to RSVP!"):
+        st.session_state.rsvp_mode = True
+
+view = "Guest RSVP" if st.session_state.rsvp_mode else None
 
 # Sidebar for admin
 admin_view = st.sidebar.radio("Admin Options", ["None", "Admin Panel"])
