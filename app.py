@@ -4,6 +4,8 @@ import datetime
 import random
 import smtplib
 from email.message import EmailMessage
+import gspread
+from google.oauth2 import service_account
 import streamlit.components.v1 as components
 
 # 🛠 FIX: Set page config FIRST
@@ -14,12 +16,22 @@ st.set_page_config(page_title="Graduation Party 🎓", page_icon="🎉", layout=
 # -------------------------
 ADMIN_PASSWORD = "gradparty2025"
 GUEST_PASSWORD = "party2025"
-CSV_FILE = "rsvps.csv"
 PARTY_DATE = datetime.datetime(2025, 6, 12)
 ADMIN_EMAILS = ["mikael.held@gmail.com", "kim.held@gmail.com"]
 SENDER_EMAIL = st.secrets["email"]["address"]
 SENDER_PASSWORD = st.secrets["email"]["password"]
 IMAGE_FILE = "studentmottagning.png"
+SHEET_NAME = "Graduation_RSVP_Leopoldine_Zacharias"
+
+# -------------------------
+# GOOGLE SHEETS CONNECTION
+# -------------------------
+credentials = service_account.Credentials.from_service_account_info(
+    st.secrets["gcp_service_account"],
+    scopes=["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
+)
+client = gspread.authorize(credentials)
+sheet = client.open_by_url("https://docs.google.com/spreadsheets/d/1nTmF8-5iKdCqsYZbO4iuSZ8c6txftnd1kiKMOsZemDo/edit#gid=0").sheet1
 
 # -------------------------
 # EMAIL FUNCTION
@@ -39,13 +51,24 @@ def send_email(to_email, subject, body):
         st.error(f"Email failed to send: {e}")
 
 # -------------------------
-# INITIAL LOAD
+# LOAD RSVPs
 # -------------------------
-try:
-    rsvps = pd.read_csv(CSV_FILE)
-except FileNotFoundError:
-    rsvps = pd.DataFrame(columns=[
-        "Timestamp", "Name", "Email", "Graduation", "Dinner", "Open House", "Food Allergies"
+def load_rsvps():
+    data = sheet.get_all_records()
+    return pd.DataFrame(data)
+
+# -------------------------
+# SAVE RSVP
+# -------------------------
+def save_rsvp(new_rsvp):
+    sheet.append_row([
+        new_rsvp["Timestamp"],
+        new_rsvp["Name"],
+        new_rsvp["Email"],
+        str(new_rsvp["Graduation"]),
+        str(new_rsvp["Dinner"]),
+        str(new_rsvp["Open House"]),
+        new_rsvp["Food Allergies"]
     ])
 
 # -------------------------
@@ -103,7 +126,6 @@ components.html("""
 # -------------------------
 st.title("🎓 You're Invited to the Graduation Celebration!")
 
-# Display Invitation Image
 st.image(IMAGE_FILE, use_container_width=True)
 
 # Countdown to Party
@@ -120,7 +142,6 @@ Join us to celebrate this special milestone with love, laughter, and joy from Le
 </div>
 """, unsafe_allow_html=True)
 
-# Initialize session state for RSVP view
 if "rsvp_mode" not in st.session_state:
     st.session_state.rsvp_mode = False
 
@@ -130,7 +151,6 @@ if not st.session_state.rsvp_mode:
 
 view = "Guest RSVP" if st.session_state.rsvp_mode else None
 
-# Sidebar for admin
 admin_view = st.sidebar.radio("Admin Options", ["None", "Admin Panel"])
 
 # -------------------------
@@ -177,8 +197,7 @@ if view == "Guest RSVP":
                     "Open House": open_house,
                     "Food Allergies": allergies
                 }
-                rsvps = pd.concat([rsvps, pd.DataFrame([new_rsvp])], ignore_index=True)
-                rsvps.to_csv(CSV_FILE, index=False)
+                save_rsvp(new_rsvp)
                 st.success(success_message)
                 st.balloons()
                 subject = email_subject
@@ -192,6 +211,7 @@ elif admin_view == "Admin Panel":
     password = st.text_input("Enter admin password", type="password")
     if password == ADMIN_PASSWORD:
         st.success("Access granted ✅")
+        rsvps = load_rsvps()
         st.dataframe(rsvps)
         st.download_button("📥 Download RSVP list", rsvps.to_csv(index=False), file_name="rsvps.csv")
     elif password:
