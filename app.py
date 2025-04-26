@@ -138,17 +138,35 @@ admin_view = st.sidebar.radio("Admin Options", ["None", "Admin Panel"])
 # -------------------------
 if view == "Guest RSVP":
     st.header("📋 RSVP Form")
+    language = st.selectbox("🌐 Select Language / Välj Språk", ("🇬🇧 English", "🇸🇪 Svenska"))
     guest_password = st.text_input("🔒 Enter invitation password", type="password")
 
     if guest_password == GUEST_PASSWORD:
         with st.form("rsvp_form"):
-            name = st.text_input("Full Name")
-            email = st.text_input("Email Address")
-            grad = st.checkbox("I will attend the Graduation Ceremony 📚")
-            dinner = st.checkbox("I will attend the Dinner 🍽️")
-            open_house = st.checkbox("I will attend the Open House 🏡")
-            allergies = st.text_area("Food allergies / Dietary needs", placeholder="None")
-            submitted = st.form_submit_button("Submit RSVP")
+            if language == "🇬🇧 English":
+                name = st.text_input("Full Name")
+                email = st.text_input("Email Address")
+                grad = st.checkbox("I will attend the Graduation Ceremony 📚")
+                dinner = st.checkbox("I will attend the Dinner 🍽️")
+                open_house = st.checkbox("I will attend the Open House 🏡")
+                allergies = st.text_area("Food allergies / Dietary needs", placeholder="None")
+                submit_label = "Submit RSVP"
+                success_message = "🎉 Thank you for your RSVP! We can't wait to celebrate with you! 🎉"
+                email_subject = "Graduation Party RSVP Confirmation 🎓"
+                email_body = lambda name, grad, dinner, open_house, allergies: f"Hi {name},\n\nThank you for your RSVP!\nGraduation: {grad}\nDinner: {dinner}\nOpen House: {open_house}\nFood Allergies: {allergies}\n\nLove, Leopoldine & Zacharias"
+            else:
+                name = st.text_input("Fullständigt Namn")
+                email = st.text_input("E-postadress")
+                grad = st.checkbox("Jag kommer till Examensceremonin 📚")
+                dinner = st.checkbox("Jag kommer till Middagen 🍽️")
+                open_house = st.checkbox("Jag kommer till Öppet Hus 🏡")
+                allergies = st.text_area("Allergier / Specialkost", placeholder="Ingen")
+                submit_label = "Skicka OSA"
+                success_message = "🎉 Tack för din OSA! Vi ses på festen! 🎉"
+                email_subject = "Bekräftelse: OSA till studentfirande 🎓"
+                email_body = lambda name, grad, dinner, open_house, allergies: f"Hej {name},\n\nTack för din OSA!\nExamensceremoni: {grad}\nMiddag: {dinner}\nÖppet Hus: {open_house}\nAllergier/Specialkost: {allergies}\n\nVi ses snart! 🎉\nHälsningar, Leopoldine & Zacharias"
+
+            submitted = st.form_submit_button(submit_label)
             if submitted:
                 new_rsvp = {
                     "Timestamp": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
@@ -161,10 +179,10 @@ if view == "Guest RSVP":
                 }
                 rsvps = pd.concat([rsvps, pd.DataFrame([new_rsvp])], ignore_index=True)
                 rsvps.to_csv(CSV_FILE, index=False)
-                st.success("🎉 Thank you for your RSVP! We can't wait to celebrate with you! 🎉")
+                st.success(success_message)
                 st.balloons()
-                subject = "Graduation Party RSVP Confirmation 🎓"
-                body = f"Hi {name},\n\nThank you for your RSVP!\nGraduation: {grad}\nDinner: {dinner}\nOpen House: {open_house}\nFood Allergies: {allergies}\n\nLove, Leopoldine & Zacharias"
+                subject = email_subject
+                body = email_body(name, grad, dinner, open_house, allergies)
                 send_email(email, subject, body)
                 for admin_email in ADMIN_EMAILS:
                     send_email(admin_email, f"New RSVP from {name}! 🎉", body)
