@@ -162,13 +162,40 @@ if "rsvp_mode" not in st.session_state:
 
 if not st.session_state.rsvp_mode:
     st.markdown("<div style='text-align: center;'>", unsafe_allow_html=True)
-    st.image(ARROW_IMAGE, use_container_width=True)
-    with st.container():
-        if st.button("🎟️ Reserve Your Seats!", key="rsvp_button"):
-            st.session_state.rsvp_mode = True
+    st.image(ARROW_IMAGE, width=150)
+    if st.button("🎟️ Reserve Your Seats!", key="rsvp_button"):
+        st.session_state.rsvp_mode = True
     st.markdown("</div>", unsafe_allow_html=True)
 
-view = "Guest RSVP" if st.session_state.rsvp_mode else None
+if st.session_state.rsvp_mode:
+    st.header("🎉 RSVP Form")
+    with st.form("RSVP"):
+        name = st.text_input("Your Name")
+        email = st.text_input("Your Email")
+        party_size = st.number_input("How many people in your group?", min_value=1, step=1)
+        graduation = st.checkbox("Will you attend the Graduation Ceremony?")
+        dinner = st.checkbox("Will you attend the Dinner?")
+        party_hopping = st.checkbox("Will you attend the Party Hopping?")
+        food_allergies = st.text_input("Food Allergies or Special Diet?")
+
+        submit_rsvp = st.form_submit_button("Submit RSVP")
+
+        if submit_rsvp:
+            new_rsvp = {
+                "Timestamp": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                "Name": name,
+                "Email": email,
+                "Party Size": party_size,
+                "Graduation": graduation,
+                "Dinner": dinner,
+                "Party Hopping": party_hopping,
+                "Food Allergies": food_allergies
+            }
+            save_rsvp(new_rsvp)
+            st.success("🎉 Thank you for your RSVP! A confirmation email will be sent.")
+            send_email(email, "Graduation RSVP Confirmation", "Thank you for RSVPing to the Graduation Party!")
+            for admin in ADMIN_EMAILS:
+                send_email(admin, "New RSVP Received", f"New RSVP from {name} ({email})")
 
 admin_view = st.sidebar.radio("Admin Options", ["None", "Admin Panel"])
 
