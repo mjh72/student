@@ -9,6 +9,7 @@ from google.oauth2 import service_account
 import streamlit.components.v1 as components
 import plotly.express as px
 
+# Set page config
 st.set_page_config(page_title="Graduation Party 🎓", page_icon="🎉", layout="centered")
 
 # CONFIGURATION
@@ -31,7 +32,6 @@ client = gspread.authorize(credentials)
 sheet = client.open_by_url("https://docs.google.com/spreadsheets/d/1nTmF8-5iKdCqsYZbO4iuSZ8c6txftnd1kiKMOsZemDo/edit#gid=0").sheet1
 
 # EMAIL FUNCTION
-
 def send_email(to_email, subject, body):
     msg = EmailMessage()
     msg.set_content(body)
@@ -46,13 +46,11 @@ def send_email(to_email, subject, body):
         st.error(f"Email failed to send: {e}")
 
 # LOAD RSVPs
-
 def load_rsvps():
     data = sheet.get_all_records()
     return pd.DataFrame(data)
 
 # SAVE RSVP
-
 def save_rsvp(new_rsvp):
     sheet.append_row([
         new_rsvp["Timestamp"],
@@ -65,7 +63,7 @@ def save_rsvp(new_rsvp):
         new_rsvp["Food Allergies"]
     ])
 
-# CUSTOM STYLING
+# STYLING
 st.markdown("""
     <style>
     div.stButton > button:first-child {
@@ -80,13 +78,10 @@ st.markdown("""
     div.stButton > button:first-child:hover {
         background-color: #ff0000;
     }
-    body {
-        background-color: #f5f5f5;
-    }
     </style>
 """, unsafe_allow_html=True)
 
-# Background Music Toggle
+# MUSIC TOGGLE
 music_on = st.sidebar.checkbox("🎵 Play Music", value=True)
 if music_on:
     components.html(f"""
@@ -96,12 +91,10 @@ if music_on:
     </audio>
     """, height=0)
 
-# TITLE AND IMAGE
+# FRONT PAGE
 st.title("🎓 You're Invited to the Graduation Celebration!")
-
 st.image(IMAGE_FILE, use_container_width=True)
 
-# PARTY INFO
 st.markdown("""
 <div style='text-align: center; font-size: 20px; color: #4a4a4a;'>
 Join us to celebrate this special milestone with love, laughter, and joy from Leopoldine and Zacharias! 🎉
@@ -131,6 +124,15 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
+# LIVE GUEST COUNTER
+try:
+    rsvps = load_rsvps()
+    if "Party Size" in rsvps.columns:
+        total_guests = rsvps["Party Size"].sum()
+        st.markdown(f"<div style='text-align: center; font-size: 22px; color: #4BB543; margin-top: 20px;'>🎉 {total_guests} guests have already RSVPed!</div>", unsafe_allow_html=True)
+except Exception as e:
+    st.warning("Could not load live guest counter.")
+
 # GUEST LOGIN
 if "rsvp_mode" not in st.session_state:
     st.session_state.rsvp_mode = False
@@ -138,9 +140,12 @@ if "guest_authenticated" not in st.session_state:
     st.session_state.guest_authenticated = False
 
 if not st.session_state.rsvp_mode:
-    st.image(ARROW_IMAGE, width=150)
-    if st.button("🎟️ Reserve Your Seats!"):
-        st.session_state.rsvp_mode = True
+    col1, col2 = st.columns([1,3])
+    with col1:
+        st.image(ARROW_IMAGE, width=100)
+    with col2:
+        if st.button("🎟️ Reserve Your Seats!"):
+            st.session_state.rsvp_mode = True
 
 if st.session_state.rsvp_mode and not st.session_state.guest_authenticated:
     guest_password = st.text_input("Enter Guest Password to RSVP", type="password")
@@ -187,28 +192,6 @@ if st.session_state.rsvp_mode and st.session_state.guest_authenticated:
             ✅ Your spot is reserved! We look forward to celebrating with you! 🎉
             </div>
             """, unsafe_allow_html=True)
-
-# REAL-TIME RSVP FEED
-st.header("📜 Latest RSVPs")
-try:
-    rsvps = load_rsvps()
-    if not rsvps.empty:
-        latest_rsvps = rsvps.sort_values("Timestamp", ascending=False).head(5)
-        for idx, row in latest_rsvps.iterrows():
-            st.info(f"{row['Timestamp']} - {row['Name']} ({row['Party Size']} people)")
-    else:
-        st.write("No RSVPs yet!")
-except Exception as e:
-    st.warning("Could not load real-time RSVPs.")
-
-# LIVE GUEST COUNTER
-try:
-    rsvps = load_rsvps()
-    if "Party Size" in rsvps.columns:
-        total_guests = rsvps["Party Size"].sum()
-        st.markdown(f"<div style='text-align: center; font-size: 22px; color: #4BB543; margin-top: 20px;'>🎉 {total_guests} guests have already RSVPed!</div>", unsafe_allow_html=True)
-except Exception as e:
-    st.warning("Could not load live guest counter.")
 
 # REMINDER EMAILS
 if datetime.datetime.now() >= (PARTY_DATE - datetime.timedelta(days=3)):
