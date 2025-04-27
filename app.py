@@ -8,6 +8,7 @@ import gspread
 from google.oauth2 import service_account
 import streamlit.components.v1 as components
 import plotly.express as px
+from icalendar import Calendar, Event
 
 # Sidkonfiguration
 st.set_page_config(page_title="Studentfirande 🎓", page_icon="🎉", layout="centered")
@@ -15,7 +16,8 @@ st.set_page_config(page_title="Studentfirande 🎓", page_icon="🎉", layout="c
 # KONFIGURATION
 ADMIN_PASSWORD = "gradparty2025"
 GUEST_PASSWORD = "party2025"
-PARTY_DATE = datetime.datetime(2025, 6, 12)
+PARTY_DATE = datetime.datetime(2025, 6, 12, 17, 0)
+PARTY_END_DATE = datetime.datetime(2025, 6, 12, 23, 0)
 ADMIN_EMAILS = ["mikael.held@gmail.com", "kim.held@gmail.com"]
 SENDER_EMAIL = st.secrets["email"]["address"]
 SENDER_PASSWORD = st.secrets["email"]["password"]
@@ -46,6 +48,35 @@ def send_email(to_email, subject, body):
     except Exception as e:
         st.error(f"E-post misslyckades att skickas: {e}")
 
+# FANCY EMAIL FÖR RSVP
+
+def send_fancy_email(to_email, subject, guest_name):
+    msg = EmailMessage()
+    html_content = f"""
+    <html>
+    <body style='font-family: Arial, sans-serif; color: #333;'>
+      <h2>🎓 Tack för din OSA, {guest_name}!</h2>
+      <p>Vi ser fram emot att fira Leopoldine och Zacharias med dig!</p>
+      <p><b>Datum:</b> 12 juni 2025<br>
+         <b>Tid:</b> 17:00 - 23:00<br>
+         <b>Plats:</b> Filmgatan 30, Solna
+      </p>
+      <p>Du kommer att få mer information närmare dagen. 🎉</p>
+      <p>Hälsningar,<br><b>Familjen Held</b></p>
+    </body>
+    </html>
+    """
+    msg.add_alternative(html_content, subtype='html')
+    msg["Subject"] = subject
+    msg["From"] = SENDER_EMAIL
+    msg["To"] = to_email
+    try:
+        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
+            smtp.login(SENDER_EMAIL, SENDER_PASSWORD)
+            smtp.send_message(msg)
+    except Exception as e:
+        st.error(f"E-post misslyckades att skickas: {e}")
+
 # LADDA RSVP
 
 def load_rsvps():
@@ -66,7 +97,20 @@ def save_rsvp(new_rsvp):
         new_rsvp["Food Allergies"]
     ])
 
-# FRONTEND ÖVERSÄTTNING
+# GENERERA ICS-FIL
+
+def generate_ics():
+    cal = Calendar()
+    event = Event()
+    event.add('summary', 'Studentfirande för Leopoldine & Zacharias')
+    event.add('dtstart', PARTY_DATE)
+    event.add('dtend', PARTY_END_DATE)
+    event.add('location', 'Filmgatan 30, Solna')
+    event.add('description', 'Välkommen att fira Leopoldine och Zacharias!')
+    cal.add_component(event)
+    return cal.to_ical()
+
+# FRONTEND
 
 st.title("🎓 Du är inbjuden till studentfirandet!")
 st.image(IMAGE_FILE, use_container_width=True)
@@ -93,10 +137,108 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
+ics = generate_ics()
+st.download_button(
+    label="📅 Ladda ner kalenderfil (.ics)",
+    data=ics,
+    file_name="studentfirande.ics",
+    mime="text/calendar"
+)
+
 st.markdown("""
 <div style='text-align: center; margin-top: 20px;'>
 <a href="https://maps.google.com/?q=Filmgatan+30,+Solna" target="_blank">🗺️ Visa festplats på karta</a>
 </div>
 """, unsafe_allow_html=True)
 
-# (Fortsätter med RSVP-formulär och Adminpanel på svenska...)
+# GÄSTLOGIN OCH RSVP-FORMULÄR
+
+if "rsvp_mode" not in st.session_state:
+    st.session_state.rsvp_mode = False
+if "guest_authenticated" not in st.session_state:
+    st.session_state.guest_authenticated = False
+
+if not st.session_state.rsvp_mode:
+    col1, col2 = st.columns([1,3])
+    with col1:
+        st.image(ARROW_IMAGE, width=100)
+    with col2:
+        if st.button("🎟️ Boka era platser!"):
+            st.session_state.rsvp_mode = True
+
+if st.session_state.rsvp_mode and not st.session_state.guest_authenticated:
+    guest_password = st.text_input("Ange gästlösenord för att OSA", type="password")
+    if guest_password == GUEST_PASSWORD:
+        st.session_state.guest_authenticated = True
+        st.success("✅ Åtkomst beviljad! Fyll i din OSA nedan.")
+    elif guest_password:
+        st.error("Fel lösenord. Försök igen.")
+
+if st.session_state.rsvp_mode and st.session_state.guest_authenticated:
+    st.header("🎉 OSA-Formulär")
+    with st.form("OSA"):
+        name = st.text_input("Ditt namn")
+        email = st.text_input("Din e-postadress")
+        party_size = st.number_input("Hur många personer i ert sällskap?", min_value=1, step=1)
+        graduation = st.checkbox("Kommer du till ceremonin?")
+        dinner = st.checkbox("Kommer du till middagen?")
+        party_hopping = st.checkbox("Kommer du till efterfesten?")
+        food_allergies = st.text_input("Matallergier eller specialkost?")
+
+        submit_rsvp = st.form_submit_button("Skicka OSA")
+
+        if submit_rsvp:
+            new_rsvp = {
+                "Timestamp": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                "Name": name,
+                "Email": email,
+                "Party Size": party_size,
+                "Graduation": graduation,
+                "Dinner": dinner,
+                "Party Hopping": party_hopping,
+                "Food Allergies": food_allergies
+            }
+            save_rsvp(new_rsvp)
+            st.success("🎉 Tack för din OSA!")
+            st.balloons()
+            send_fancy_email(email, "Bekräftelse på din OSA", name)
+            for admin in ADMIN_EMAILS:
+                send_email(admin, "Ny OSA mottagen", f"Ny OSA från {name} ({email})")
+
+            st.markdown("""
+            <div style='text-align: center; font-size: 24px; color: #4BB543; margin-top: 30px;'>
+            ✅ Din plats är bokad! Vi ser fram emot att fira med dig! 🎉
+            </div>
+            """, unsafe_allow_html=True)
+
+# ADMINPANEL
+
+admin_view = st.sidebar.radio("Admin-alternativ", ["Ingen", "Adminpanel"])
+if admin_view == "Adminpanel":
+    st.header("🔒 Adminpanel")
+    password = st.text_input("Ange adminlösenord", type="password")
+    if password == ADMIN_PASSWORD:
+        st.success("Åtkomst beviljad ✅")
+        rsvps = load_rsvps()
+        st.dataframe(rsvps)
+        if "Party Size" in rsvps.columns:
+            total_guests = rsvps["Party Size"].sum()
+            st.markdown(f"## 🎉 Totalt förväntade gäster: {total_guests}")
+
+        st.subheader("📊 OSA-Statistik")
+        if "Graduation" in rsvps.columns and "Dinner" in rsvps.columns and "Party Hopping" in rsvps.columns:
+            grad_attending = rsvps[rsvps["Graduation"] == "True"]["Party Size"].sum()
+            dinner_attending = rsvps[rsvps["Dinner"] == "True"]["Party Size"].sum()
+            partyhopping_attending = rsvps[rsvps["Party Hopping"] == "True"]["Party Size"].sum()
+
+            stats_df = pd.DataFrame({
+                "Event": ["Ceremoni", "Middag", "Efterfest"],
+                "Antal": [grad_attending, dinner_attending, partyhopping_attending]
+            })
+
+            fig = px.bar(stats_df, x="Event", y="Antal", color="Event", title="Översikt över deltagande")
+            st.plotly_chart(fig)
+
+        st.download_button("📥 Ladda ner OSA-lista", rsvps.to_csv(index=False), file_name="osa_lista.csv")
+    elif password:
+        st.error("Fel lösenord. Försök igen.")
