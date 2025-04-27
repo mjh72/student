@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 import datetime
-import random
 import smtplib
 from email.message import EmailMessage
 import gspread
@@ -12,11 +11,19 @@ from icalendar import Calendar, Event
 # Sidkonfiguration
 st.set_page_config(page_title="Studentfirande 🎓", page_icon="🎉", layout="centered")
 
-# Lägg till bakgrundsfärg
+# Lägg till bakgrundsfärg och knappstil
 st.markdown("""
     <style>
     body {
         background-color: #FFF8E7;
+    }
+    .stButton > button {
+        background-color: #FFD700;
+        color: black;
+        font-size: 20px;
+        padding: 10px 24px;
+        border-radius: 10px;
+        border: none;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -41,7 +48,6 @@ client = gspread.authorize(credentials)
 sheet = client.open_by_url("https://docs.google.com/spreadsheets/d/1nTmF8-5iKdCqsYZbO4iuSZ8c6txftnd1kiKMOsZemDo/edit#gid=0").sheet1
 
 # E-POSTFUNKTIONER
-
 def send_email(to_email, subject, body):
     msg = EmailMessage()
     msg.set_content(body)
@@ -56,7 +62,6 @@ def send_email(to_email, subject, body):
         st.error(f"E-post misslyckades att skickas: {e}")
 
 # FANCY EMAIL FÖR RSVP
-
 def send_fancy_email(to_email, subject, guest_name):
     msg = EmailMessage()
     html_content = f"""
@@ -85,13 +90,11 @@ def send_fancy_email(to_email, subject, guest_name):
         st.error(f"E-post misslyckades att skickas: {e}")
 
 # LADDA RSVP
-
 def load_rsvps():
     data = sheet.get_all_records()
     return pd.DataFrame(data)
 
 # SPARA RSVP
-
 def save_rsvp(new_rsvp):
     sheet.append_row([
         new_rsvp["Timestamp"],
@@ -105,7 +108,6 @@ def save_rsvp(new_rsvp):
     ])
 
 # GENERERA ICS
-
 def generate_ics():
     cal = Calendar()
     event = Event()
@@ -118,7 +120,6 @@ def generate_ics():
     return cal.to_ical()
 
 # FRONTEND
-
 st.title("🎓 Du är inbjuden till studentfirandet!")
 st.image(IMAGE_FILE, use_container_width=True)
 
@@ -148,7 +149,6 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # GÄSTLOGIN OCH RSVP
-
 if "guest_authenticated" not in st.session_state:
     st.session_state.guest_authenticated = False
 
@@ -188,7 +188,6 @@ if st.session_state.guest_authenticated:
             save_rsvp(new_rsvp)
             st.success("🎉 Tack för din OSA!")
             st.balloons()
-            st.snow()
             send_fancy_email(email, "Bekräftelse på din OSA", name)
             for admin in ADMIN_EMAILS:
                 send_email(admin, "Ny OSA mottagen", f"Ny OSA från {name} ({email})")
@@ -200,7 +199,6 @@ if st.session_state.guest_authenticated:
             """, unsafe_allow_html=True)
 
 # ADMINPANEL
-
 admin_view = st.sidebar.radio("Admin-alternativ", ["Ingen", "Adminpanel"])
 if admin_view == "Adminpanel":
     st.header("🔒 Adminpanel")
