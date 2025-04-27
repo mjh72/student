@@ -1,5 +1,3 @@
-# Fullständigt uppdaterad kod med deluxe-uppgraderingar kommer här! 🚀
-
 import streamlit as st
 import pandas as pd
 import datetime
