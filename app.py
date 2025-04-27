@@ -158,7 +158,7 @@ if not st.session_state.guest_authenticated:
     guest_password = st.text_input("Gästlösenord", type="password")
     if guest_password == GUEST_PASSWORD:
         st.session_state.guest_authenticated = True
-        st.experimental_rerun()
+        # Ingen användning av st.experimental_rerun(), status hanteras i sessionen
     elif guest_password:
         st.error("Fel lösenord. Försök igen.")
 
