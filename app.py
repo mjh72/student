@@ -22,7 +22,7 @@ ADMIN_EMAILS = ["mikael.held@gmail.com", "kim.held@gmail.com"]
 SENDER_EMAIL = st.secrets["email"]["address"]
 SENDER_PASSWORD = st.secrets["email"]["password"]
 IMAGE_FILE = "studentmottagning.png"
-ARROW_IMAGE = "ecc62040-14e1-43b4-9d50-2cb2898aef02.png"
+ARROW_IMAGE = "arrow.png"
 BACKGROUND_MUSIC = "https://www.bensound.com/bensound-music/bensound-celebration.mp3"
 SHEET_NAME = "Graduation_RSVP_Leopoldine_Zacharias"
 
