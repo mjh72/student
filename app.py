@@ -16,59 +16,78 @@ st.set_page_config(page_title="Studentfirande 🎓", page_icon="🎉", layout="c
 st.markdown("""
     <style>
     body {
-        background-color: #f4f7f9;
-        color: #333;
-        font-family: 'Arial', sans-serif;
+        background-color: #FFF8E7;
     }
-
     .stButton > button {
-        background-color: #ffdf00;
-        color: #333;
-        font-size: 18px;
-        padding: 12px 28px;
+        background-color: #FFD700;
+        color: black;
+        font-size: 20px;
+        padding: 10px 24px;
         border-radius: 10px;
-        border: 2px solid #ffcc00;
-        box-shadow: 0px 4px 6px rgba(0,0,0,0.1);
-        transition: all 0.3s ease;
-    }
-
-    .stButton > button:hover {
-        background-color: #ffcc00;
-        color: white;
-        transform: scale(1.05);
-    }
-
-    .stTextInput input {
-        border-radius: 5px;
-        padding: 8px;
-        border: 1px solid #ccc;
-    }
-
-    .stTextInput input:focus {
-        border-color: #ffdf00;
-    }
-
-    .stCheckbox div {
-        font-size: 16px;
-        color: #555;
-    }
-
-    .stForm {
-        padding: 20px;
-        border-radius: 12px;
-        background-color: #ffffff;
-        box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-    }
-
-    .stSuccess {
-        color: #4BB543;
-        font-size: 22px;
-        text-align: center;
+        border: none;
     }
     </style>
 """, unsafe_allow_html=True)
 
-# Resten av din kod fortsätter här...
+# --- Resten av din kod börjar här (ingen ändring behövs för imports och konfigurationer) ---
+
+# (Kod från "KONFIGURATION" till och med "FRONTEND" är samma och bevaras)
+
+# --- Gästlogin och RSVP ---
+
+if "guest_authenticated" not in st.session_state:
+    st.session_state.guest_authenticated = False
+
+if not st.session_state.guest_authenticated:
+    st.header("🎟️ Välkommen! Boka dina platser här!")
+    st.success("Ange gästlösenordet för att OSA till festen! 🎉")
+    guest_password = st.text_input("Gästlösenord", type="password")
+    if guest_password == GUEST_PASSWORD:
+        st.session_state.guest_authenticated = True
+        st.experimental_rerun()
+    elif guest_password:
+        st.error("Fel lösenord. Försök igen.")
+
+if st.session_state.guest_authenticated:
+    st.header("🎉 OSA-Formulär")
+    with st.form("OSA"):
+        name = st.text_input("Ditt namn")
+        email = st.text_input("Din e-postadress")
+        party_size = st.number_input("Hur många personer i ert sällskap?", min_value=1, step=1)
+        graduation = st.checkbox("Kommer du till ceremonin?")
+        dinner = st.checkbox("Kommer du till middagen?")
+        party_hopping = st.checkbox("Kommer du till efterfesten?")
+        food_allergies = st.text_input("Matallergier eller specialkost?")
+        submit_rsvp = st.form_submit_button("🎟️ Skicka OSA")
+
+        if submit_rsvp:
+            new_rsvp = {
+                "Timestamp": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                "Name": name,
+                "Email": email,
+                "Party Size": party_size,
+                "Graduation": graduation,
+                "Dinner": dinner,
+                "Party Hopping": party_hopping,
+                "Food Allergies": food_allergies
+            }
+            save_rsvp(new_rsvp)
+            st.success("🎉 Tack för din OSA!")
+            st.balloons()
+            st.markdown("""
+            <div style='text-align: center; font-size: 36px; color: #FF69B4; margin-top: 20px;'>🎊🎊🎊</div>
+            """, unsafe_allow_html=True)
+            send_fancy_email(email, "Bekräftelse på din OSA", name)
+            for admin in ADMIN_EMAILS:
+                send_email(admin, "Ny OSA mottagen", f"Ny OSA från {name} ({email})")
+
+            st.markdown("""
+            <div style='text-align: center; font-size: 24px; color: #4BB543; margin-top: 30px;'>
+            ✅ Din plats är bokad! Vi ser fram emot att fira med dig! 🎉
+            </div>
+            """, unsafe_allow_html=True)
+
+# --- Adminpanel och resten av koden fortsätter som du har det! (Ingen ändring behövs där) ---
 
 
 # KONFIGURATION
