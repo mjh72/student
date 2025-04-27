@@ -101,9 +101,9 @@ def save_rsvp(new_rsvp):
         new_rsvp["Name"],
         new_rsvp["Email"],
         new_rsvp["Party Size"],
-        str(new_rsvp["Graduation"]),
-        str(new_rsvp["Dinner"]),
-        str(new_rsvp["Party Hopping"]),
+        str(new_rsvp["Kommer du till Utspringet"]),
+        str(new_rsvp["Kommer du till Mottagning"]),
+        str(new_rsvp["Kommer du äta Middag"]),
         new_rsvp["Food Allergies"]
     ])
 
@@ -135,7 +135,7 @@ st.markdown("""
 <b>När:</b> 🗓️ 12 juni 2025<br>
 <b>Tid:</b> 🕔 17:00 – 23:00<br>
 <b>Plats:</b> 📍 Filmgatan 30, Solna<br>
-<b>Vad:</b> 🎓 Ceremoni, middag och efterfest!
+<b>Vad:</b> 🎓 Utspring, Mottagning och Middag!
 </div>
 """, unsafe_allow_html=True)
 
@@ -168,9 +168,9 @@ if st.session_state.guest_authenticated:
         name = st.text_input("Ditt namn")
         email = st.text_input("Din e-postadress")
         party_size = st.number_input("Hur många personer i ert sällskap?", min_value=1, step=1)
-        graduation = st.checkbox("Kommer du till ceremonin?")
-        dinner = st.checkbox("Kommer du till middagen?")
-        party_hopping = st.checkbox("Kommer du till efterfesten?")
+        graduation = st.checkbox("Kommer du till Utspringet?")
+        dinner = st.checkbox("Kommer du till Mottagningen?")
+        party_hopping = st.checkbox("Kommer du äta Middag?")
         food_allergies = st.text_input("Matallergier eller specialkost?")
         submit_rsvp = st.form_submit_button("🎟️ Skicka OSA")
 
