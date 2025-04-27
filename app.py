@@ -170,7 +170,7 @@ if st.session_state.guest_authenticated:
         utspring = st.checkbox("Kommer du till Utspringet?")
         mottagning = st.checkbox("Kommer du till Mottagningen?")
         middag = st.checkbox("Kommer du äta Middag?")
-        food_allergies = st.text_input("Matallergier eller specialkost?")
+        food_allergies = st.text_input("Matintolerans/specialkost?")
         submit_rsvp = st.form_submit_button("🎟️ Skicka OSA")
 
         if submit_rsvp:
