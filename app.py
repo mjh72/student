@@ -98,9 +98,17 @@ st.markdown("""
         user-drag: none;
         pointer-events: none;
     }
-    .arrow {
-        text-align: center;
-        margin-top: 1rem;
+    .reserve-button button {
+        font-size: 24px;
+        padding: 0.75rem 1.5rem;
+        background-color: #ff4b4b;
+        color: white;
+        border-radius: 10px;
+        border: none;
+        cursor: pointer;
+    }
+    .reserve-button button:hover {
+        background-color: #ff0000;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -153,9 +161,12 @@ if "rsvp_mode" not in st.session_state:
     st.session_state.rsvp_mode = False
 
 if not st.session_state.rsvp_mode:
-    st.image(ARROW_IMAGE, use_container_width=False)
-    if st.button("🎟️ Reserve Your Seats!"):
-        st.session_state.rsvp_mode = True
+    st.markdown("<div style='text-align: center;'>", unsafe_allow_html=True)
+    st.image(ARROW_IMAGE, use_container_width=True)
+    with st.container():
+        if st.button("🎟️ Reserve Your Seats!", key="rsvp_button"):
+            st.session_state.rsvp_mode = True
+    st.markdown("</div>", unsafe_allow_html=True)
 
 view = "Guest RSVP" if st.session_state.rsvp_mode else None
 
