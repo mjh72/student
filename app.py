@@ -12,64 +12,14 @@ from icalendar import Calendar, Event
 # Sidkonfiguration
 st.set_page_config(page_title="Studentfirande 🎓", page_icon="🎉", layout="centered")
 
-# Lägg till bakgrundsfärg och knappstil
+# Lägg till bakgrundsfärg
 st.markdown("""
     <style>
     body {
-        background-color: #f4f7f9;
-        color: #333;
-        font-family: 'Arial', sans-serif;
-    }
-
-    .stButton > button {
-        background-color: #ffdf00;
-        color: #333;
-        font-size: 18px;
-        padding: 12px 28px;
-        border-radius: 10px;
-        border: 2px solid #ffcc00;
-        box-shadow: 0px 4px 6px rgba(0,0,0,0.1);
-        transition: all 0.3s ease;
-    }
-
-    .stButton > button:hover {
-        background-color: #ffcc00;
-        color: white;
-        transform: scale(1.05);
-    }
-
-    .stTextInput input {
-        border-radius: 5px;
-        padding: 8px;
-        border: 1px solid #ccc;
-    }
-
-    .stTextInput input:focus {
-        border-color: #ffdf00;
-    }
-
-    .stCheckbox div {
-        font-size: 16px;
-        color: #555;
-    }
-
-    .stForm {
-        padding: 20px;
-        border-radius: 12px;
-        background-color: #ffffff;
-        box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-    }
-
-    .stSuccess {
-        color: #4BB543;
-        font-size: 22px;
-        text-align: center;
+        background-color: #FFF8E7;
     }
     </style>
 """, unsafe_allow_html=True)
-
-# Resten av din kod fortsätter här...
-
 
 # KONFIGURATION
 ADMIN_PASSWORD = "gradparty2025"
