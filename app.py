@@ -212,10 +212,10 @@ if admin_view == "Adminpanel":
             st.markdown(f"<h2 style='text-align: center; color: #6A0DAD;'>👥 Totalt anmälda: {total_guests} personer!</h2>", unsafe_allow_html=True)
 
         st.subheader("📊 OSA-Statistik")
-        if "Utspring" in rsvps.columns and "Mottagning" in rsvps.columns and "Middag" in rsvps.columns:
-            utspring_attending = rsvps[rsvps["Utspring"] == "True"]["Party Size"].sum()
-            mottagning_attending = rsvps[rsvps["Mottagning"] == "True"]["Party Size"].sum()
-            middag_attending = rsvps[rsvps["Middag"] == "True"]["Party Size"].sum()
+        if all(col in rsvps.columns for col in ["Utspring", "Mottagning", "Middag"]):
+            utspring_attending = rsvps[rsvps["Utspring"] == True]["Party Size"].sum()
+            mottagning_attending = rsvps[rsvps["Mottagning"] == True]["Party Size"].sum()
+            middag_attending = rsvps[rsvps["Middag"] == True]["Party Size"].sum()
 
             stats_df = pd.DataFrame({
                 "Event": ["Utspring", "Mottagning", "Middag"],
