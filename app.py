@@ -160,6 +160,9 @@ st.markdown("""
 if "rsvp_mode" not in st.session_state:
     st.session_state.rsvp_mode = False
 
+if "guest_authenticated" not in st.session_state:
+    st.session_state.guest_authenticated = False
+
 if not st.session_state.rsvp_mode:
     st.markdown("<div style='text-align: center;'>", unsafe_allow_html=True)
     st.image(ARROW_IMAGE, width=150)
@@ -167,7 +170,15 @@ if not st.session_state.rsvp_mode:
         st.session_state.rsvp_mode = True
     st.markdown("</div>", unsafe_allow_html=True)
 
-if st.session_state.rsvp_mode:
+if st.session_state.rsvp_mode and not st.session_state.guest_authenticated:
+    guest_password = st.text_input("Enter Guest Password to RSVP", type="password")
+    if guest_password == GUEST_PASSWORD:
+        st.session_state.guest_authenticated = True
+        st.success("✅ Access granted! Fill in your RSVP below.")
+    elif guest_password:
+        st.error("Incorrect password. Please try again.")
+
+if st.session_state.rsvp_mode and st.session_state.guest_authenticated:
     st.header("🎉 RSVP Form")
     with st.form("RSVP"):
         name = st.text_input("Your Name")
@@ -209,21 +220,25 @@ if admin_view == "Admin Panel":
         st.success("Access granted ✅")
         rsvps = load_rsvps()
         st.dataframe(rsvps)
-        total_guests = rsvps["Party Size"].sum()
-        st.markdown(f"## 🎉 Total expected guests: {total_guests}")
+        if "Party Size" in rsvps.columns:
+            total_guests = rsvps["Party Size"].sum()
+            st.markdown(f"## 🎉 Total expected guests: {total_guests}")
+        else:
+            st.warning("⚠️ 'Party Size' column missing in Google Sheet. Please check header names.")
 
         st.subheader("📊 RSVP Statistics")
-        grad_attending = rsvps[rsvps["Graduation"] == "True"]["Party Size"].sum()
-        dinner_attending = rsvps[rsvps["Dinner"] == "True"]["Party Size"].sum()
-        partyhopping_attending = rsvps[rsvps["Party Hopping"] == "True"]["Party Size"].sum()
+        if "Graduation" in rsvps.columns and "Dinner" in rsvps.columns and "Party Hopping" in rsvps.columns:
+            grad_attending = rsvps[rsvps["Graduation"] == "True"]["Party Size"].sum()
+            dinner_attending = rsvps[rsvps["Dinner"] == "True"]["Party Size"].sum()
+            partyhopping_attending = rsvps[rsvps["Party Hopping"] == "True"]["Party Size"].sum()
 
-        stats_df = pd.DataFrame({
-            "Event": ["Graduation", "Dinner", "Party Hopping"],
-            "Attendees": [grad_attending, dinner_attending, partyhopping_attending]
-        })
+            stats_df = pd.DataFrame({
+                "Event": ["Graduation", "Dinner", "Party Hopping"],
+                "Attendees": [grad_attending, dinner_attending, partyhopping_attending]
+            })
 
-        fig = px.bar(stats_df, x="Event", y="Attendees", color="Event", title="Guest Attendance Overview")
-        st.plotly_chart(fig)
+            fig = px.bar(stats_df, x="Event", y="Attendees", color="Event", title="Guest Attendance Overview")
+            st.plotly_chart(fig)
 
         st.download_button("📥 Download RSVP list", rsvps.to_csv(index=False), file_name="rsvps.csv")
     elif password:
