@@ -153,7 +153,7 @@ if "rsvp_mode" not in st.session_state:
     st.session_state.rsvp_mode = False
 
 if not st.session_state.rsvp_mode:
-    st.image(ARROW_IMAGE, use_column_width=False)
+    st.image(ARROW_IMAGE, use_container_width=False)
     if st.button("🎟️ Reserve Your Seats!"):
         st.session_state.rsvp_mode = True
 
