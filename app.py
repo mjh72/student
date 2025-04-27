@@ -101,9 +101,9 @@ def save_rsvp(new_rsvp):
         new_rsvp["Name"],
         new_rsvp["Email"],
         new_rsvp["Party Size"],
-        str(new_rsvp["Kommer du till Utspringet"]),
-        str(new_rsvp["Kommer du till Mottagning"]),
-        str(new_rsvp["Kommer du äta Middag"]),
+        str(new_rsvp["Utspring"]),
+        str(new_rsvp["Mottagning"]),
+        str(new_rsvp["Middag"]),
         new_rsvp["Food Allergies"]
     ])
 
@@ -158,7 +158,6 @@ if not st.session_state.guest_authenticated:
     guest_password = st.text_input("Gästlösenord", type="password")
     if guest_password == GUEST_PASSWORD:
         st.session_state.guest_authenticated = True
-        # Ingen användning av st.experimental_rerun(), status hanteras i sessionen
     elif guest_password:
         st.error("Fel lösenord. Försök igen.")
 
@@ -168,9 +167,9 @@ if st.session_state.guest_authenticated:
         name = st.text_input("Ditt namn")
         email = st.text_input("Din e-postadress")
         party_size = st.number_input("Hur många personer i ert sällskap?", min_value=1, step=1)
-        graduation = st.checkbox("Kommer du till Utspringet?")
-        dinner = st.checkbox("Kommer du till Mottagningen?")
-        party_hopping = st.checkbox("Kommer du äta Middag?")
+        utspring = st.checkbox("Kommer du till Utspringet?")
+        mottagning = st.checkbox("Kommer du till Mottagningen?")
+        middag = st.checkbox("Kommer du äta Middag?")
         food_allergies = st.text_input("Matallergier eller specialkost?")
         submit_rsvp = st.form_submit_button("🎟️ Skicka OSA")
 
@@ -180,9 +179,9 @@ if st.session_state.guest_authenticated:
                 "Name": name,
                 "Email": email,
                 "Party Size": party_size,
-                "Graduation": graduation,
-                "Dinner": dinner,
-                "Party Hopping": party_hopping,
+                "Utspring": utspring,
+                "Mottagning": mottagning,
+                "Middag": middag,
                 "Food Allergies": food_allergies
             }
             save_rsvp(new_rsvp)
@@ -213,14 +212,14 @@ if admin_view == "Adminpanel":
             st.markdown(f"<h2 style='text-align: center; color: #6A0DAD;'>👥 Totalt anmälda: {total_guests} personer!</h2>", unsafe_allow_html=True)
 
         st.subheader("📊 OSA-Statistik")
-        if "Graduation" in rsvps.columns and "Dinner" in rsvps.columns and "Party Hopping" in rsvps.columns:
-            grad_attending = rsvps[rsvps["Graduation"] == "True"]["Party Size"].sum()
-            dinner_attending = rsvps[rsvps["Dinner"] == "True"]["Party Size"].sum()
-            partyhopping_attending = rsvps[rsvps["Party Hopping"] == "True"]["Party Size"].sum()
+        if "Utspring" in rsvps.columns and "Mottagning" in rsvps.columns and "Middag" in rsvps.columns:
+            utspring_attending = rsvps[rsvps["Utspring"] == "True"]["Party Size"].sum()
+            mottagning_attending = rsvps[rsvps["Mottagning"] == "True"]["Party Size"].sum()
+            middag_attending = rsvps[rsvps["Middag"] == "True"]["Party Size"].sum()
 
             stats_df = pd.DataFrame({
-                "Event": ["Ceremoni", "Middag", "Efterfest"],
-                "Antal": [grad_attending, dinner_attending, partyhopping_attending]
+                "Event": ["Utspring", "Mottagning", "Middag"],
+                "Antal": [utspring_attending, mottagning_attending, middag_attending]
             })
 
             fig = px.pie(stats_df, names="Event", values="Antal", hole=0.4, title="Deltagande per event")
